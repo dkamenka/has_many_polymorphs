@@ -254,7 +254,14 @@ module ActiveRecord #:nodoc:
         # validate against the most frequent configuration mistakes
         verify_pluralization_of(association_id)
         raise PolymorphicError, ":from option must be an array" unless options[:from].is_a? Array
-        options[:from].each{|plural| verify_pluralization_of(plural)}
+
+        # if an association with this name is already defined, we recreate it with
+        # the new and old :from-options combined
+        if self.reflections[association_id]
+          options[:from] += self.reflections[association_id].options[:from]
+          options[:from].uniq!
+        end
+        options[:from].each { |plural| verify_pluralization_of(plural) }
 
         options[:as] ||= self.name.demodulize.underscore.to_sym
         options[:conflicts] = Array(options[:conflicts])
