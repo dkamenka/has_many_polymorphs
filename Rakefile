@@ -1,24 +1,23 @@
-$LOAD_PATH.unshift File.expand_path("../lib", __FILE__)
-require "bundler/version"
- 
-task :build do
-  system "gem build bundler.gemspec"
-end
- 
-task :release => :build do
-  system "gem push bundler-#{Bunder::VERSION}"
-end
+begin
+  require "load_multi_rails_rake_tasks"
 
 desc "Run all the tests for every database adapter" 
 task "test_all" do
   ['mysql', 'postgresql', 'sqlite3'].each do |adapter|
     ENV['DB'] = adapter
     ENV['PRODUCTION'] = nil
-    STDERR.puts "#{'='*80}\nDevelopment mode for #{adapter}\n#{'='*80}"
+    $stderr.puts "#{'='*80}\nDevelopment mode for #{adapter}\n#{'='*80}"
     system("rake test:multi_rails:all")
-  
+
     ENV['PRODUCTION'] = '1'
-    STDERR.puts "#{'='*80}\nProduction mode for #{adapter}\n#{'='*80}"
-    system("rake test:multi_rails:all")    
+    $stderr.puts "#{'='*80}\nProduction mode for #{adapter}\n#{'='*80}"
+    system("rake test:multi_rails:all")
   end
+end
+
+rescue LoadError
+  $stderr.puts "You should install the multi_rails-gem"
+  $stderr.puts ''
+  $stderr.puts "  gem install multi_rails"
+  $stderr.puts ''
 end
