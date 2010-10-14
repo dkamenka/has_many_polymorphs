@@ -1,14 +1,19 @@
-
 module ActiveRecord
   class Base
-
     class << self
-
-      # Interprets a polymorphic row from a unified SELECT, returning the appropriate ActiveRecord instance. Overrides ActiveRecord::Base.instantiate_without_callbacks.
+      # Interprets a polymorphic row from a unified SELECT, returning the
+      # appropriate ActiveRecord instance. Overrides
+      # ActiveRecord::Base.instantiate_without_callbacks.
       def instantiate_with_polymorphic_checks(record)
         if record['polymorphic_parent_class']
-          reflection = record['polymorphic_parent_class'].constantize.reflect_on_association(record['polymorphic_association_id'].to_sym)
-#          _logger_debug "Instantiating a polymorphic row for #{record['polymorphic_parent_class']}.reflect_on_association(:#{record['polymorphic_association_id']})"
+          reflection = record['polymorphic_parent_class'].constantize.reflect_on_association(
+            record['polymorphic_association_id'].to_sym
+          )
+          # _logger_debug "Instantiating a polymorphic row for #{
+          #   record['polymorphic_parent_class']
+          # }.reflect_on_association(:#{
+          #   record['polymorphic_association_id']
+          # })"
 
           # rewrite the record with the right column names
           table_aliases = reflection.options[:table_aliases].dup
@@ -26,9 +31,12 @@ module ActiveRecord
           end
 
           # check that the join actually joined to something
-          unless (child_id = record["#{self.table_name}.#{reflection.options[:polymorphic_key]}"]) == record["#{klass.table_name}.#{klass.primary_key}"]
-            raise ActiveRecord::Associations::PolymorphicError,
-              "Referential integrity violation; child <#{klass.name}:#{child_id}> was not found for #{reflection.name.inspect}"
+          child_id = record["#{self.table_name}.#{reflection.options[:polymorphic_key]}"]
+          unless child_id == record["#{klass.table_name}.#{klass.primary_key}"]
+            msg = []
+            msg << "Referential integrity violation"
+            msg << "child <#{klass.name}:#{child_id}> was not found for #{reflection.name.inspect}"
+            raise ActiveRecord::Associations::PolymorphicError, msg.join('; ')
           end
 
           # eject the join keys
@@ -57,9 +65,7 @@ module ActiveRecord
           instantiate_without_polymorphic_checks(record)
         end
       end
-
       alias_method_chain :instantiate, :polymorphic_checks
     end
-
   end
 end
