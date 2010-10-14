@@ -1,63 +1,66 @@
 module ActiveRecord #:nodoc:
   module Associations #:nodoc:
+    # Class methods added to ActiveRecord::Base for setting up
+    # polymorphic associations
+    #
+    # == Notes
+    #
+    # STI association targets must enumerated and named. For example,
+    # if Dog and Cat both inherit from Animal, you still need to say
+    # <tt>[:dogs, :cats]</tt>, and not <tt>[:animals]</tt>.
+    #
+    # Namespaced models follow the Rails <tt>underscore</tt> convention.
+    # ZooAnimal::Lion becomes <tt>:'zoo_animal/lion'</tt>.
+    #
+    # You do not need to set up any other associations other than for
+    # either the regular method or the double. The join associations and
+    # all individual and reverse associations are generated for you.
+    # However, a join model and table are required.
+    #
+    # There is a tentative report that you can make the parent model be
+    # its own join model, but this is untested.
+    module PolymorphicClassMethods
+      RESERVED_DOUBLES_KEYS = [
+        :conditions, :order, :limit, :offset, :extend,
+        :skip_duplicates, :join_extend, :dependent,
+        :rename_individual_collections, :namespace
+      ] #:nodoc:
 
-=begin rdoc
-
-Class methods added to ActiveRecord::Base for setting up polymorphic associations.
-
-== Notes
-
-STI association targets must enumerated and named. For example, if Dog and Cat both inherit from Animal, you still need to say <tt>[:dogs, :cats]</tt>, and not <tt>[:animals]</tt>.
-
-Namespaced models follow the Rails <tt>underscore</tt> convention. ZooAnimal::Lion becomes <tt>:'zoo_animal/lion'</tt>.
-
-You do not need to set up any other associations other than for either the regular method or the double. The join associations and all individual and reverse associations are generated for you. However, a join model and table are required.
-
-There is a tentative report that you can make the parent model be its own join model, but this is untested.
-
-=end
-   module PolymorphicClassMethods
-
-     RESERVED_DOUBLES_KEYS = [:conditions, :order, :limit, :offset, :extend, :skip_duplicates,
-                                   :join_extend, :dependent, :rename_individual_collections,
-                                   :namespace] #:nodoc:
-
-=begin rdoc
-
-This method creates a doubled-sided polymorphic relationship. It must be called on the join model:
-
-  class Devouring < ActiveRecord::Base
-    belongs_to :eater, :polymorphic => true
-    belongs_to :eaten, :polymorphic => true
-
-    acts_as_double_polymorphic_join(
-      :eaters => [:dogs, :cats],
-      :eatens => [:cats, :birds]
-    )
-  end
-
-The method works by defining one or more special <tt>has_many_polymorphs</tt> association on every model in the target lists, depending on which side of the association it is on. Double self-references will work.
-
-The two association names and their value arrays are the only required parameters.
-
-== Available options
-
-These options are passed through to targets on both sides of the association. If you want to affect only one side, prepend the key with the name of that side. For example, <tt>:eaters_extend</tt>.
-
-<tt>:dependent</tt>:: Accepts <tt>:destroy</tt>, <tt>:nullify</tt>, or <tt>:delete_all</tt>. Controls how the join record gets treated on any association delete (whether from the polymorph or from an individual collection); defaults to <tt>:destroy</tt>.
-<tt>:skip_duplicates</tt>:: If <tt>true</tt>, will check to avoid pushing already associated records (but also triggering a database load). Defaults to <tt>true</tt>.
-<tt>:rename_individual_collections</tt>:: If <tt>true</tt>, all individual collections are prepended with the polymorph name, and the children's parent collection is appended with <tt>"\_of_#{association_name}"</tt>.
-<tt>:extend</tt>:: One or an array of mixed modules and procs, which are applied to the polymorphic association (usually to define custom methods).
-<tt>:join_extend</tt>:: One or an array of mixed modules and procs, which are applied to the join association.
-<tt>:conditions</tt>:: An array or string of conditions for the SQL <tt>WHERE</tt> clause.
-<tt>:order</tt>:: A string for the SQL <tt>ORDER BY</tt> clause.
-<tt>:limit</tt>:: An integer. Affects the polymorphic and individual associations.
-<tt>:offset</tt>:: An integer. Only affects the polymorphic association.
-<tt>:namespace</tt>:: A symbol. Prepended to all the models in the <tt>:from</tt> and <tt>:through</tt> keys. This is especially useful for Camping, which namespaces models by default.
-
-=end
+      # This method creates a doubled-sided polymorphic relationship. It must be called on the join model:
+      #
+      #   class Devouring < ActiveRecord::Base
+      #     belongs_to :eater, :polymorphic => true
+      #     belongs_to :eaten, :polymorphic => true
+      #
+      #     acts_as_double_polymorphic_join(
+      #       :eaters => [:dogs, :cats],
+      #       :eatens => [:cats, :birds]
+      #     )
+      #   end
+      #
+      # The method works by defining one or more special
+      # <tt>has_many_polymorphs</tt> association on every model in the target
+      # lists, depending on which side of the association it is on. Double
+      # self-references will work.
+      #
+      # The two association names and their value arrays are the only required
+      # parameters.
+      #
+      # == Available options
+      #
+      # These options are passed through to targets on both sides of the association. If you want to affect only one side, prepend the key with the name of that side. For example, <tt>:eaters_extend</tt>.
+      #
+      # <tt>:dependent</tt>:: Accepts <tt>:destroy</tt>, <tt>:nullify</tt>, or <tt>:delete_all</tt>. Controls how the join record gets treated on any association delete (whether from the polymorph or from an individual collection); defaults to <tt>:destroy</tt>.
+      # <tt>:skip_duplicates</tt>:: If <tt>true</tt>, will check to avoid pushing already associated records (but also triggering a database load). Defaults to <tt>true</tt>.
+      # <tt>:rename_individual_collections</tt>:: If <tt>true</tt>, all individual collections are prepended with the polymorph name, and the children's parent collection is appended with <tt>"\\_of_#{association_name}"</tt>.
+      # <tt>:extend</tt>:: One or an array of mixed modules and procs, which are applied to the polymorphic association (usually to define custom methods).
+      # <tt>:join_extend</tt>:: One or an array of mixed modules and procs, which are applied to the join association.
+      # <tt>:conditions</tt>:: An array or string of conditions for the SQL <tt>WHERE</tt> clause.
+      # <tt>:order</tt>:: A string for the SQL <tt>ORDER BY</tt> clause.
+      # <tt>:limit</tt>:: An integer. Affects the polymorphic and individual associations.
+      # <tt>:offset</tt>:: An integer. Only affects the polymorphic association.
+      # <tt>:namespace</tt>:: A symbol. Prepended to all the models in the <tt>:from</tt> and <tt>:through</tt> keys. This is especially useful for Camping, which namespaces models by default.
       def acts_as_double_polymorphic_join options={}, &extension
-
         collections, options = extract_double_collections(options)
 
         # handle the block
@@ -76,7 +79,10 @@ These options are passed through to targets on both sides of the association. If
           begin
             parent_foreign_key = self.reflect_on_association(parent_hash_key._singularize).primary_key_name
           rescue NoMethodError
-            raise PolymorphicError, "Couldn't find 'belongs_to' association for :#{parent_hash_key._singularize} in #{self.name}." unless parent_foreign_key
+            unless parent_foreign_key
+              msg = "Couldn't find 'belongs_to' association for :#{parent_hash_key._singularize} in #{self.name}."
+              raise PolymorphicError, msg
+            end
           end
 
           parents = collections[parent_hash_key]
@@ -137,57 +143,56 @@ These options are passed through to targets on both sides of the association. If
                 parent_class.send(:alias_method, join_name_method, "#{join_name_method}_as_#{singular_reverse_association_id}")
               end
             end
-
           end
         end
       end
 
-=begin rdoc
-
-This method createds a single-sided polymorphic relationship.
-
-  class Petfood < ActiveRecord::Base
-    has_many_polymorphs :eaters, :from => [:dogs, :cats, :birds]
-  end
-
-The only required parameter, aside from the association name, is <tt>:from</tt>.
-
-The method generates a number of associations aside from the polymorphic one. In this example Petfood also gets <tt>dogs</tt>, <tt>cats</tt>, and <tt>birds</tt>, and Dog, Cat, and Bird get <tt>petfoods</tt>. (The reverse association to the parents is always plural.)
-
-== Available options
-
-<tt>:from</tt>:: An array of symbols representing the target models. Required.
-<tt>:as</tt>:: A symbol for the parent's interface in the join--what the parent 'acts as'.
-<tt>:through</tt>:: A symbol representing the class of the join model. Follows Rails defaults if not supplied (the parent and the association names, alphabetized, concatenated with an underscore, and singularized).
-<tt>:dependent</tt>:: Accepts <tt>:destroy</tt>, <tt>:nullify</tt>, <tt>:delete_all</tt>. Controls how the join record gets treated on any associate delete (whether from the polymorph or from an individual collection); defaults to <tt>:destroy</tt>.
-<tt>:skip_duplicates</tt>:: If <tt>true</tt>, will check to avoid pushing already associated records (but also triggering a database load). Defaults to <tt>true</tt>.
-<tt>:rename_individual_collections</tt>:: If <tt>true</tt>, all individual collections are prepended with the polymorph name, and the children's parent collection is appended with "_of_#{association_name}"</tt>. For example, <tt>zoos</tt> becomes <tt>zoos_of_animals</tt>. This is to help avoid method name collisions in crowded classes.
-<tt>:extend</tt>:: One or an array of mixed modules and procs, which are applied to the polymorphic association (usually to define custom methods).
-<tt>:join_extend</tt>:: One or an array of mixed modules and procs, which are applied to the join association.
-<tt>:parent_extend</tt>:: One or an array of mixed modules and procs, which are applied to the target models' association to the parents.
-<tt>:conditions</tt>:: An array or string of conditions for the SQL <tt>WHERE</tt> clause.
-<tt>:parent_conditions</tt>:: An array or string of conditions which are applied to the target models' association to the parents.
-<tt>:order</tt>:: A string for the SQL <tt>ORDER BY</tt> clause.
-<tt>:parent_order</tt>:: A string for the SQL <tt>ORDER BY</tt> which is applied to the target models' association to the parents.
-<tt>:group</tt>:: An array or string of conditions for the SQL <tt>GROUP BY</tt> clause. Affects the polymorphic and individual associations.
-<tt>:limit</tt>:: An integer. Affects the polymorphic and individual associations.
-<tt>:offset</tt>:: An integer. Only affects the polymorphic association.
-<tt>:namespace</tt>:: A symbol. Prepended to all the models in the <tt>:from</tt> and <tt>:through</tt> keys. This is especially useful for Camping, which namespaces models by default.
-<tt>:uniq</tt>:: If <tt>true</tt>, the records returned are passed through a pure-Ruby <tt>uniq</tt> before they are returned. Rarely needed.
-<tt>:foreign_key</tt>:: The column name for the parent's id in the join.
-<tt>:foreign_type_key</tt>:: The column name for the parent's class name in the join, if the parent itself is polymorphic. Rarely needed--if you're thinking about using this, you almost certainly want to use <tt>acts_as_double_polymorphic_join()</tt> instead.
-<tt>:polymorphic_key</tt>:: The column name for the child's id in the join.
-<tt>:polymorphic_type_key</tt>:: The column name for the child's class name in the join.
-
-If you pass a block, it gets converted to a Proc and added to <tt>:extend</tt>.
-
-== On condition nullification
-
-When you request an individual association, non-applicable but fully-qualified fields in the polymorphic association's <tt>:conditions</tt>, <tt>:order</tt>, and <tt>:group</tt> options get changed to <tt>NULL</tt>. For example, if you set <tt>:conditions => "dogs.name != 'Spot'"</tt>, when you request <tt>.cats</tt>, the conditions string is changed to <tt>NULL != 'Spot'</tt>.
-
-Be aware, however, that <tt>NULL != 'Spot'</tt> returns <tt>false</tt> due to SQL's 3-value logic. Instead, you need to use the <tt>:conditions</tt> string <tt>"dogs.name IS NULL OR dogs.name != 'Spot'"</tt> to get the behavior you probably expect for negative matches.
-
-=end
+      # This method createds a single-sided polymorphic relationship
+      #
+      #   class Petfood < ActiveRecord::Base has_many_polymorphs :eaters,
+      #   :from => [:dogs, :cats, :birds] end
+      #
+      # The only required parameter, aside from the association name, is
+      # <tt>:from</tt>.
+      #
+      # The method generates a number of associations aside from the
+      # polymorphic one. In this example Petfood also gets <tt>dogs</tt>,
+      # <tt>cats</tt>, and <tt>birds</tt>, and Dog, Cat, and Bird get
+      # <tt>petfoods</tt>. (The reverse association to the parents is
+      # always plural.)
+      #
+      # == Available options
+      #
+      # <tt>:from</tt>:: An array of symbols representing the target models. Required.
+      # <tt>:as</tt>:: A symbol for the parent's interface in the join--what the parent 'acts as'.
+      # <tt>:through</tt>:: A symbol representing the class of the join model. Follows Rails defaults if not supplied (the parent and the association names, alphabetized, concatenated with an underscore, and singularized).
+      # <tt>:dependent</tt>:: Accepts <tt>:destroy</tt>, <tt>:nullify</tt>, <tt>:delete_all</tt>. Controls how the join record gets treated on any associate delete (whether from the polymorph or from an individual collection); defaults to <tt>:destroy</tt>.
+      # <tt>:skip_duplicates</tt>:: If <tt>true</tt>, will check to avoid pushing already associated records (but also triggering a database load). Defaults to <tt>true</tt>.
+      # <tt>:rename_individual_collections</tt>:: If <tt>true</tt>, all individual collections are prepended with the polymorph name, and the children's parent collection is appended with "_of_#{association_name}"</tt>. For example, <tt>zoos</tt> becomes <tt>zoos_of_animals</tt>. This is to help avoid method name collisions in crowded classes.
+      # <tt>:extend</tt>:: One or an array of mixed modules and procs, which are applied to the polymorphic association (usually to define custom methods).
+      # <tt>:join_extend</tt>:: One or an array of mixed modules and procs, which are applied to the join association.
+      # <tt>:parent_extend</tt>:: One or an array of mixed modules and procs, which are applied to the target models' association to the parents.
+      # <tt>:conditions</tt>:: An array or string of conditions for the SQL <tt>WHERE</tt> clause.
+      # <tt>:parent_conditions</tt>:: An array or string of conditions which are applied to the target models' association to the parents.
+      # <tt>:order</tt>:: A string for the SQL <tt>ORDER BY</tt> clause.
+      # <tt>:parent_order</tt>:: A string for the SQL <tt>ORDER BY</tt> which is applied to the target models' association to the parents.
+      # <tt>:group</tt>:: An array or string of conditions for the SQL <tt>GROUP BY</tt> clause. Affects the polymorphic and individual associations.
+      # <tt>:limit</tt>:: An integer. Affects the polymorphic and individual associations.
+      # <tt>:offset</tt>:: An integer. Only affects the polymorphic association.
+      # <tt>:namespace</tt>:: A symbol. Prepended to all the models in the <tt>:from</tt> and <tt>:through</tt> keys. This is especially useful for Camping, which namespaces models by default.
+      # <tt>:uniq</tt>:: If <tt>true</tt>, the records returned are passed through a pure-Ruby <tt>uniq</tt> before they are returned. Rarely needed.
+      # <tt>:foreign_key</tt>:: The column name for the parent's id in the join.
+      # <tt>:foreign_type_key</tt>:: The column name for the parent's class name in the join, if the parent itself is polymorphic. Rarely needed--if you're thinking about using this, you almost certainly want to use <tt>acts_as_double_polymorphic_join()</tt> instead.
+      # <tt>:polymorphic_key</tt>:: The column name for the child's id in the join.
+      # <tt>:polymorphic_type_key</tt>:: The column name for the child's class name in the join.
+      #
+      # If you pass a block, it gets converted to a Proc and added to <tt>:extend</tt>.
+      #
+      # == On condition nullification
+      #
+      # When you request an individual association, non-applicable but fully-qualified fields in the polymorphic association's <tt>:conditions</tt>, <tt>:order</tt>, and <tt>:group</tt> options get changed to <tt>NULL</tt>. For example, if you set <tt>:conditions => "dogs.name != 'Spot'"</tt>, when you request <tt>.cats</tt>, the conditions string is changed to <tt>NULL != 'Spot'</tt>.
+      #
+      # Be aware, however, that <tt>NULL != 'Spot'</tt> returns <tt>false</tt> due to SQL's 3-value logic. Instead, you need to use the <tt>:conditions</tt> string <tt>"dogs.name IS NULL OR dogs.name != 'Spot'"</tt> to get the behavior you probably expect for negative matches.
       def has_many_polymorphs(association_id, options = {}, &extension)
         _logger_debug "associating #{self}.#{association_id}"
         reflection = create_has_many_polymorphs_reflection(association_id, options, &extension)
@@ -196,9 +201,9 @@ Be aware, however, that <tt>NULL != 'Spot'</tt> returns <tt>false</tt> due to SQ
         collection_reader_method(reflection, PolymorphicAssociation)
       end
 
-      # Composed method that assigns option defaults,  builds the reflection
-      # object, and sets up all the related associations on the parent, join,
-      # and targets.
+      # Composed method that assigns option defaults, builds the
+      # reflection object, and sets up all the related associations on
+      # the parent, join, and targets.
       def create_has_many_polymorphs_reflection(association_id, options, &extension) #:nodoc:
         options.assert_valid_keys(
           :from,
@@ -431,23 +436,25 @@ Be aware, however, that <tt>NULL != 'Spot'</tt> returns <tt>false</tt> due to SQ
 
           parent = self
           plural._as_class.instance_eval do
-            # this shouldn't be called at all during doubles; there is no way to traverse to a double polymorphic parent (XXX is that right?)
+            # this shouldn't be called at all during doubles; there is
+            # no way to traverse to a double polymorphic parent
+            # (TODO is that right?)
             unless reflection.options[:is_double] or reflection.options[:conflicts].include? self.name.tableize.to_sym
 
               # the join table
               through = "#{reflection.options[:through]}#{'_as_child' if parent == self}".to_sym
               has_many(through,
                 :as => association_id._singularize,
-#                :source => association_id._singularize,
-               # :source_type => reflection.options[:polymorphic_type_key],
+                # :source => association_id._singularize,
+                # :source_type => reflection.options[:polymorphic_type_key],
                 :class_name => reflection.klass.name,
                 :dependent => reflection.options[:dependent],
                 :extend => reflection.options[:join_extend],
-  #              :limit => reflection.options[:limit],
-  #              :offset => reflection.options[:offset],
+                # :limit => reflection.options[:limit],
+                # :offset => reflection.options[:offset],
                 :order => devolve(association_id, reflection, reflection.options[:parent_order], reflection.klass),
                 :conditions => devolve(association_id, reflection, reflection.options[:parent_conditions], reflection.klass)
-                )
+              )
 
               # the association to the target's parents
               association = "#{reflection.options[:as]._pluralize}#{"_of_#{association_id}" if reflection.options[:rename_individual_collections]}".to_sym
@@ -461,12 +468,11 @@ Be aware, however, that <tt>NULL != 'Spot'</tt> returns <tt>false</tt> due to SQ
                 :order => reflection.options[:parent_order],
                 :offset => reflection.options[:parent_offset],
                 :limit => reflection.options[:parent_limit],
-                :group => reflection.options[:parent_group])
+                :group => reflection.options[:parent_group]
+              )
 
-#                debugger if association == :parents
-#
-#                nil
-
+              # debugger if association == :parents
+              # nil
             end
           end
         end
@@ -474,7 +480,6 @@ Be aware, however, that <tt>NULL != 'Spot'</tt> returns <tt>false</tt> due to SQ
 
       def create_has_many_through_associations_for_parent_to_children(association_id, reflection)
         child_pluralization_map(association_id, reflection).each do |plural, singular|
-          #puts ":source => #{child}"
           current_association = demodulate(child_association_map(association_id, reflection)[plural])
           source = demodulate(singular)
 
@@ -492,21 +497,22 @@ Be aware, however, that <tt>NULL != 'Spot'</tt> returns <tt>false</tt> due to SQ
               def delete *args; proxy_owner.send(:#{association_id}).send(:delete, *args); end
               def clear; proxy_owner.send(:#{association_id}).send(:clear, #{singular._classify}); end
               self
-            end]
+            end
+          ]
 
-          has_many(current_association.to_sym,
-              :through => reflection.options[:through],
-              :source => association_id._singularize,
-              :source_type => plural._as_class.base_class.name,
-              :class_name => plural._as_class.name, # make STI not conflate subtypes
-              :extend => (Array(extension_module) + reflection.options[:extend]),
-              :limit => reflection.options[:limit],
-  #        :offset => reflection.options[:offset],
-              :order => devolve(association_id, reflection, reflection.options[:order], plural._as_class),
-              :conditions => devolve(association_id, reflection, reflection.options[:conditions], plural._as_class),
-              :group => devolve(association_id, reflection, reflection.options[:group], plural._as_class)
-              )
-
+          has_many(
+            current_association.to_sym,
+            :through => reflection.options[:through],
+            :source => association_id._singularize,
+            :source_type => plural._as_class.base_class.name,
+            :class_name => plural._as_class.name, # make STI not conflate subtypes
+            :extend => (Array(extension_module) + reflection.options[:extend]),
+            :limit => reflection.options[:limit],
+            # :offset => reflection.options[:offset],
+            :order => devolve(association_id, reflection, reflection.options[:order], plural._as_class),
+            :conditions => devolve(association_id, reflection, reflection.options[:conditions], plural._as_class),
+            :group => devolve(association_id, reflection, reflection.options[:group], plural._as_class)
+           )
         end
       end
 
