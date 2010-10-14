@@ -41,7 +41,7 @@ class << ActiveRecord::Base
   end
 
   unless defined? GENERATED_CODE_DIR
-    base_dir = defined?(Rails) ? Rails.root.expand_path : '/tmp'
+    base_dir = (defined?(Rails) and Rails.root) ? Rails.root.expand_path : '/tmp'
     GENERATED_CODE_DIR = "#{base_dir}/generated_models"
 
     begin
