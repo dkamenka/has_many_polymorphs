@@ -63,13 +63,15 @@ class Object
   # Logger shortcut.
   def _logger_debug s
     s = "** has_many_polymorphs: #{s}"
-    Rails.logger.debug(s) if Rails and Rails.logger
+    if defined?(Rails) and Rails.respond_to?(:logger) and Rails.logger.respond_to?(:debug)
+      Rails.logger.debug(s)
+    end
   end
 
   # Logger shortcut.
   def _logger_warn s
     s = "** has_many_polymorphs: #{s}"
-    if Rails and Rails.logger
+    if defined?(Rails) and Rails.respond_to?(:logger) and Rails.logger.respond_to?(:warn)
       Rails.logger.warn(s)
     else
       $stderr.puts(s)
