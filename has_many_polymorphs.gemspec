@@ -4,7 +4,7 @@ $:.unshift lib unless $:.include?(lib)
 
 Gem::Specification.new do |s|
   s.name        = "has_many_polymorphs"
-  s.version     = "3.0.0"
+  s.version     = "3.0.1"
   s.platform    = Gem::Platform::RUBY
   s.authors     = ["Evan Weaver", "James Stewart", "Matthias Viehweger"]
   s.homepage    = "http://blog.evanweaver.com/files/doc/fauna/has_many_polymorphs/"
