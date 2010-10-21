@@ -1,14 +1,12 @@
-# -*- encoding: utf-8 -*-
+# vim:ft=ruby:fileencoding=utf-8
 lib = File.expand_path('../lib/', __FILE__)
 $:.unshift lib unless $:.include?(lib)
- 
-#require 'bundler/version'
- 
+
 Gem::Specification.new do |s|
   s.name        = "has_many_polymorphs"
-  s.version     = "3.0.0.beta1"
+  s.version     = "3.0.0"
   s.platform    = Gem::Platform::RUBY
-  s.authors     = ["Evan Weaver"]
+  s.authors     = ["Evan Weaver", "James Stewart", "Matthias Viehweger"]
   s.homepage    = "http://blog.evanweaver.com/files/doc/fauna/has_many_polymorphs/"
   s.summary     = "An ActiveRecord plugin for self-referential and double-sided polymorphic associations."
 
