@@ -410,9 +410,10 @@ module ActiveRecord #:nodoc:
           options[:as] = reflection.options[:as]
         end
 
-        has_many(reflection.options[:through], options)
-
-        inject_before_save_into_join_table(association_id, reflection)
+        unless reflections[reflection.options[:through]]
+          has_many(reflection.options[:through], options)
+          inject_before_save_into_join_table(association_id, reflection)
+        end
       end
 
       def inject_before_save_into_join_table(association_id, reflection)
@@ -447,21 +448,22 @@ module ActiveRecord #:nodoc:
             # no way to traverse to a double polymorphic parent
             # (TODO is that right?)
             unless reflection.options[:is_double] or reflection.options[:conflicts].include? self.name.tableize.to_sym
-
               # the join table
               through = "#{reflection.options[:through]}#{'_as_child' if parent == self}".to_sym
-              has_many(through,
-                :as => association_id._singularize,
-                # :source => association_id._singularize,
-                # :source_type => reflection.options[:polymorphic_type_key],
-                :class_name => reflection.klass.name,
-                :dependent => reflection.options[:dependent],
-                :extend => reflection.options[:join_extend],
-                # :limit => reflection.options[:limit],
-                # :offset => reflection.options[:offset],
-                :order => devolve(association_id, reflection, reflection.options[:parent_order], reflection.klass),
-                :conditions => devolve(association_id, reflection, reflection.options[:parent_conditions], reflection.klass)
-              )
+              unless reflections[through]
+                has_many(through,
+                  :as => association_id._singularize,
+                  # :source => association_id._singularize,
+                  # :source_type => reflection.options[:polymorphic_type_key],
+                  :class_name => reflection.klass.name,
+                  :dependent => reflection.options[:dependent],
+                  :extend => reflection.options[:join_extend],
+                  # :limit => reflection.options[:limit],
+                  # :offset => reflection.options[:offset],
+                  :order => devolve(association_id, reflection, reflection.options[:parent_order], reflection.klass),
+                  :conditions => devolve(association_id, reflection, reflection.options[:parent_conditions], reflection.klass)
+                )
+              end
 
               # the association to the target's parents
               association = "#{reflection.options[:as]._pluralize}#{"_of_#{association_id}" if reflection.options[:rename_individual_collections]}".to_sym
