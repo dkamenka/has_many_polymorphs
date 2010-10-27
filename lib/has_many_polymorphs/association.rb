@@ -44,7 +44,7 @@ module ActiveRecord #:nodoc:
       end
 
       def construct_scope
-        _logger_warn "Warning; not all usage scenarios for polymorphic scopes are supported yet."
+        # _logger_warn "Warning; not all usage scenarios for polymorphic scopes are supported yet."
         super
       end
 
