@@ -52,14 +52,8 @@ module ActiveRecord
             obj.instance_variable_set("@attributes", record)
             obj.instance_variable_set("@attributes_cache", Hash.new)
 
-            if obj.respond_to_without_attributes?(:after_find)
-              obj.send(:callback, :after_find)
-            end
-
-            if obj.respond_to_without_attributes?(:after_initialize)
-              obj.send(:callback, :after_initialize)
-            end
-
+            obj.run_callbacks :find
+            obj.run_callbacks :initialize
           end
         else
           instantiate_without_polymorphic_checks(record)
